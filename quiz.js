@@ -27,9 +27,10 @@ const createQuestionElement = (question, index) => {
     const questionElement = document.createElement('article');
     const questionHeading = document.createElement('h2');
     const feedback = document.createElement('p');
+    const correctAnswer = decodeHtml(question.correct_answer);
     const options = shuffle([
-        ...question.incorrect_answers,
-        question.correct_answer,
+        ...question.incorrect_answers.map((answer) => decodeHtml(answer)),
+        correctAnswer,
     ]);
 
     questionHeading.textContent = `Question ${index + 1}: ${decodeHtml(question.question)}`;
@@ -37,20 +38,27 @@ const createQuestionElement = (question, index) => {
 
     options.forEach((option) => {
         const optionElement = document.createElement('button');
-        const decodedOption = decodeHtml(option);
 
         optionElement.type = 'button';
-        optionElement.textContent = decodedOption;
+        optionElement.textContent = option;
+        optionElement.classList.add('answer-button');
         optionElement.addEventListener('click', () => {
-            const isCorrect = option === question.correct_answer;
+            const isCorrect = option === correctAnswer;
 
-            questionElement.querySelectorAll('button').forEach((button) => {
+            questionElement.querySelectorAll('.answer-button').forEach((button) => {
                 button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.classList.add('correct-answer');
+                }
+                if (button === optionElement && !isCorrect) {
+                    button.classList.add('incorrect-answer');
+                }
             });
 
+            console.log(isCorrect ? 'Rätt!' : 'Fel!');
             feedback.textContent = isCorrect
                 ? 'Correct!'
-                : `Incorrect. The correct answer is ${decodeHtml(question.correct_answer)}.`;
+                : `Incorrect. The correct answer is ${correctAnswer}.`;
             feedback.setAttribute('role', 'status');
         });
 
